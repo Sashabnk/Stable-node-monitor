@@ -57,23 +57,39 @@ def check_node(ip):
         return {"status": "error"}
 
 # --- КОМАНДИ БОТА ---
+# --- ОНОВЛЕНИЙ ОБРОБНИК /START ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     global OWNER_ID
+    
+    welcome_message = (
+        "👋 Вітаю! Я Ваш Stable Node Monitor Bot.\n\n"
+        "🛠 *Доступні команди:*\n"
+        "`/add` IP Назва  — Додати ноду \n"
+        "`/del` IP        — Видалити ноду\n"
+        "`/list`          — Показати список нод\n"
+        "`/check`         — Перевірити статус зараз\n\n"
+        "--- *Статус* ---\n"
+        "🟢 *Synced* — Нода повністю синхронізована.\n"
+        "🟡 *Catching Up* — Нода наздоганяє мережу.\n"
+        "🔴 *OFFLINE / ERR* — Нода не відповідає або вимкнена."
+    )
     
     # ЛОГІКА АВТО-РЕЄСТРАЦІЇ ВЛАСНИКА
     if OWNER_ID == 0:
         OWNER_ID = message.chat.id
         config['owner_id'] = OWNER_ID
         save_config(config)
-        bot.reply_to(message, "🎉 **Вітаю! Ви успішно авторизовані як власник.**\nТепер я буду надсилати звіти сюди.\n\nКоманди:\n/add IP NAME\n/list")
+        bot.reply_to(message, f"🎉 **Вітаю! Ви успішно авторизовані як власник.**\n\n{welcome_message}", parse_mode="Markdown")
         return
 
+    # Якщо пише чужа людина
     if message.chat.id != OWNER_ID:
         bot.reply_to(message, "⛔️ Це приватний бот. Доступ заборонено.")
         return
 
-    bot.reply_to(message, "👋 З поверненням! Системи в нормі.")
+    # Якщо власник пише /start вдруге
+    bot.reply_to(message, welcome_message, parse_mode="Markdown")
 
 @bot.message_handler(commands=['add'])
 def add_node(message):
